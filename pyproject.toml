@@ -1,0 +1,74 @@
+[project]
+name = "ocap-py"
+version = "0.1.0"
+description = "OCAP (Out-of-Control Action Plan) System - 半导体制造异常失控处置系统，对标 Applied Materials SmartFactory Knowledge Advisor"
+authors = ["OCAP Team <ocap@example.com>"]
+readme = "README.md"
+license = "MIT"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Web 框架
+fastapi = "^0.115.0"
+uvicorn = { extras = ["standard"], version = "^0.32.0" }
+# 数据库
+sqlalchemy = "^2.0.36"
+alembic = "^1.13.3"
+psycopg = { extras = ["binary"], version = "^3.2.3" }
+asyncpg = "^0.30.0"
+# 数据校验与配置
+pydantic = "^2.10.0"
+pydantic-settings = "^2.6.1"
+# 工作流与任务
+# (后续按需引入工作流引擎，如 temporal / prefect)
+# 消息队列与缓存
+redis = "^5.2.0"
+kafka-python = "^2.0.2"
+# HTTP 客户端
+httpx = "^0.28.0"
+# 日志
+loguru = "^0.7.2"
+# 工具库
+python-dateutil = "^2.9.0"
+orjson = "^3.10.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+httpx = "^0.28.0"
+ruff = "^0.7.4"
+mypy = "^1.13.0"
+pre-commit = "^4.0.1"
+testcontainers = { extras = ["postgresql", "redis"], version = "^4.8.2" }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --cov=app --cov-report=term-missing"
+asyncio_mode = "auto"
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+    "slow: slow tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
