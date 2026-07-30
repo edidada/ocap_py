@@ -1,0 +1,32 @@
+- model: app.domains.iam.models.User
+  rows:
+    - id: 1
+      tenant_id: 1
+      username: admin
+      email: admin@fab01.local
+      __password__: pass
+      is_active: true
+    - id: 2
+      tenant_id: 1
+      username: engineer
+      email: engineer@fab01.local
+      __password__: pass
+      is_active: true
+    - id: 3
+      tenant_id: 1
+      username: supervisor
+      email: supervisor@fab01.local
+      __password__: pass
+      is_active: true
+    - id: 4
+      tenant_id: 1
+      username: operator
+      email: operator@fab01.local
+      __password__: pass
+      is_active: true
+    - id: 5
+      tenant_id: 1
+      username: auditor
+      email: auditor@fab01.local
+      __password__: pass
+      is_active: true

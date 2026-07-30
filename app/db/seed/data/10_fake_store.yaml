@@ -1,0 +1,39 @@
+batches:
+  - { batch_id: B2026-001, product: P_CMOS_A, status: running, equipment_id: EQP-ETCH-01, quantity: 25 }
+  - { batch_id: B2026-002, product: P_CMOS_A, status: running, equipment_id: EQP-ETCH-02, quantity: 25 }
+  - { batch_id: B2026-003, product: P_DRAM_B, status: running, equipment_id: EQP-CMP-01, quantity: 50 }
+  - { batch_id: B2026-004, product: P_LOGIC_C, status: released, equipment_id: EQP-LITH-01, quantity: 25 }
+  - { batch_id: B2026-005, product: P_LOGIC_C, status: running, equipment_id: EQP-LITH-02, quantity: 25 }
+
+recipes:
+  - { recipe_id: R-ETCH-001, name: etch_main_v1, version: 3, params: { power: 1500, pressure: 5.0, temp: 60 } }
+  - { recipe_id: R-CMP-001, name: cmp_polish, version: 2, params: { force: 1200, time: 90 } }
+  - { recipe_id: R-LITH-001, name: litho_expose, version: 5, params: { dose: 28.5, focus: 0.0 } }
+
+spc_charts:
+  - { chart_id: C-THK-01, parameter: thickness, ucl: 105.0, lcl: 95.0, target: 100.0, last_ooc_at: null, last_value: 100.2 }
+  - { chart_id: C-CD-01, parameter: critical_dimension, ucl: 52.0, lcl: 48.0, target: 50.0, last_ooc_at: null, last_value: 50.1 }
+  - { chart_id: C-UNIF-01, parameter: uniformity, ucl: 3.0, lcl: 0.0, target: 1.5, last_ooc_at: null, last_value: 1.4 }
+
+spc_events:
+  - { event_id: SE-001, chart_id: C-THK-01, parameter: thickness, value: 106.5, violation: UCL_EXCEEDED, detected_at: "2026-07-30T08:30:00+00:00", severity: critical, equipment_id: EQP-ETCH-01 }
+  - { event_id: SE-002, chart_id: C-CD-01, parameter: critical_dimension, value: 47.5, violation: LCL_EXCEEDED, detected_at: "2026-07-30T09:10:00+00:00", severity: warning, equipment_id: EQP-LITH-02 }
+
+fdc_alarms:
+  - { alarm_id: FA-001, equipment_id: EQP-ETCH-01, fault: chamber_pressure_drift, severity: critical, detected_at: "2026-07-30T08:25:00+00:00", context: { sensor: "P1", deviation: 0.8 } }
+  - { alarm_id: FA-002, equipment_id: EQP-CMP-01, fault: endpoint_detection_fail, severity: warning, detected_at: "2026-07-30T10:00:00+00:00", context: { stage: 2 } }
+
+ams_alarms:
+  - { alarm_id: AA-001, equipment_id: EQP-ETCH-01, code: INTERLOCK, severity: critical, raised_at: "2026-07-30T08:26:00+00:00", cleared_at: null }
+  - { alarm_id: AA-002, equipment_id: EQP-LITH-02, code: CALIBRATION_DUE, severity: warning, raised_at: "2026-07-29T12:00:00+00:00", cleared_at: null }
+
+yields:
+  - { batch_id: B2026-004, yield_rate: 98.5, measured_at: "2026-07-29T18:00:00+00:00" }
+  - { batch_id: B2026-001, yield_rate: 91.2, measured_at: "2026-07-30T07:00:00+00:00" }
+
+defects:
+  - { defect_id: DF-001, batch_id: B2026-001, defect_type: scratch, count: 3, measured_at: "2026-07-30T07:30:00+00:00" }
+  - { defect_id: DF-002, batch_id: B2026-003, defect_type: particle, count: 7, measured_at: "2026-07-30T07:45:00+00:00" }
+
+maintenance_orders:
+  - { order_id: MO-0001, equipment_id: EQP-ETCH-01, type: corrective, status: open, created_at: "2026-07-30T08:30:00+00:00" }

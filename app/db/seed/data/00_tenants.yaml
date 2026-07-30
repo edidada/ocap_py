@@ -1,0 +1,14 @@
+- model: app.domains.iam.models.Tenant
+  rows:
+    - id: 1
+      code: fab01
+      name: 晶圆厂一
+      locale: zh-CN
+      timezone: Asia/Shanghai
+      status: active
+    - id: 2
+      code: fab02
+      name: 晶圆厂二
+      locale: en-US
+      timezone: Asia/Shanghai
+      status: active

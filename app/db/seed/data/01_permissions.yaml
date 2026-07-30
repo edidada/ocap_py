@@ -1,0 +1,24 @@
+- model: app.domains.iam.models.Permission
+  rows:
+    - { id: 1, code: "ocap:event:create", description: "创建/触发异常事件" }
+    - { id: 2, code: "ocap:event:read", description: "查看异常事件" }
+    - { id: 3, code: "ocap:event:advance", description: "推进事件处置流程" }
+    - { id: 4, code: "ocap:workflow:advance", description: "推进工作流节点" }
+    - { id: 5, code: "ocap:workflow:intervene", description: "工作流人工干预" }
+    - { id: 6, code: "ocap:workflow:publish", description: "发布工作流模板" }
+    - { id: 7, code: "ocap:rca:create", description: "创建根因分析" }
+    - { id: 8, code: "ocap:rca:read", description: "查看根因分析" }
+    - { id: 9, code: "ocap:action:create", description: "创建处置行动" }
+    - { id: 10, code: "ocap:action:execute", description: "执行处置行动" }
+    - { id: 11, code: "ocap:action:sign", description: "电子签核" }
+    - { id: 12, code: "ocap:action:rollback", description: "回滚处置行动" }
+    - { id: 13, code: "ocap:integration:configure", description: "配置集成" }
+    - { id: 14, code: "ocap:integration:sync", description: "触发集成同步" }
+    - { id: 15, code: "ocap:knowledge:publish", description: "发布知识案例" }
+    - { id: 16, code: "ocap:knowledge:read", description: "查看知识案例" }
+    - { id: 17, code: "ocap:analytics:read", description: "查看分析报表" }
+    - { id: 18, code: "ocap:analytics:export", description: "导出分析报表" }
+    - { id: 19, code: "ocap:audit:read", description: "查看审计日志" }
+    - { id: 20, code: "ocap:audit:export", description: "导出审计日志" }
+    - { id: 21, code: "ocap:config:write", description: "修改配置" }
+    - { id: 22, code: "ocap:platform:admin", description: "平台管理" }

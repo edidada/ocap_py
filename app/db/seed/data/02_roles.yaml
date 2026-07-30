@@ -1,0 +1,7 @@
+- model: app.domains.iam.models.Role
+  rows:
+    - { id: 1, tenant_id: 1, code: "admin", name: "管理员" }
+    - { id: 2, tenant_id: 1, code: "engineer", name: "工程师" }
+    - { id: 3, tenant_id: 1, code: "supervisor", name: "主管" }
+    - { id: 4, tenant_id: 1, code: "operator", name: "操作员" }
+    - { id: 5, tenant_id: 1, code: "auditor", name: "审计员" }

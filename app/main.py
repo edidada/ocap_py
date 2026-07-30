@@ -1,33 +1,34 @@
-"""FastAPI 应用入口."""
+"""FastAPI 应用入口。"""
 
-from contextlib import asynccontextmanager
+from __future__ import annotations
+
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import api_router
 from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """应用生命周期管理."""
-    # 启动
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """应用生命周期管理。"""
     yield
-    # 关闭
     await _dispose_resources()
 
 
 async def _dispose_resources() -> None:
-    """释放资源."""
+    """释放资源。"""
     from app.db.session import engine
 
     await engine.dispose()
 
 
 def create_app() -> FastAPI:
-    """创建 FastAPI 应用实例."""
+    """创建 FastAPI 应用实例。"""
     app = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
@@ -38,7 +39,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -47,7 +47,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # 路由
+    register_exception_handlers(app)
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
     return app
