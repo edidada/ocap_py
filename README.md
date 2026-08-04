@@ -24,12 +24,17 @@ OCAP 系统围绕工厂 **工程智能 (Engineering Intelligence, EI)** 系统�
 
 | 分类 | 技术选型 | 说明 |
 | :--- | :--- | :--- |
-| 语言 | Python 3.11+ | 主开发语言 |
+| 语言 | Python 3.12+ | 主开发语言（PEP 695 / match-case） |
 | 构建/依赖 | Poetry | 依赖管理与打包 |
-| Web 框架 | FastAPI | 高性能异步 Web 框架 |
-| 测试框架 | Pytest | 单元测试与集成测试 |
-| 数据库 | PostgreSQL | 关系型数据库 |
-| ORM | SQLAlchemy 2.0 + Alembic | ORM 与数据库迁移 |
+| Web 框架 | FastAPI 0.110 + Starlette | 高性能异步 + 自动 OpenAPI |
+| 测试框架 | pytest + pytest-asyncio + httpx | SQLite :memory: 单测 0 外部依赖 |
+| 数据库 | PostgreSQL 15 | JSONB / BRIN / 分区表 |
+| ORM | SQLAlchemy 2.x Async + Alembic | ORM 与数据库迁移（含 JSONBCompat 跨 PG/SQLite） |
+| 安全 | python-jose + passlib[pbkdf2_sha256] + JWT RS256 | 21 CFR Part 11 合规 |
+| 缓存/锁/流 | Redis 7 | Redlock 分布式锁 / Streams 事件总线 |
+| 调度 | APScheduler AsyncIOScheduler | KPI 聚合 / SLA 升级 / 保留期归档 |
+| 对象存储 | MinIO / S3 兼容 | 备份 / 报告 / 归档分区 |
+| 文档 | Mermaid 内嵌 Markdown | 架构 / ER / 数据流可渲染图 |
 
 ---
 
@@ -127,16 +132,95 @@ OCAP 系统围绕工厂 **工程智能 (Engineering Intelligence, EI)** 系统�
 ## 🚀 快速开始
 
 > 详细的业务点对标请参见 [docs/BUSINESS_POINTS.md](docs/BUSINESS_POINTS.md)
+> 设计文档（9 份 + Mermaid 图）见 [docs/design/](docs/design/)：
+>
+> 01 [概要设计](docs/design/01-hld-architecture.md) · 02 [功能设计](docs/design/02-functional-design.md) · 03 [用例图](docs/design/03-use-case.md) · 04 [数据流图](docs/design/04-data-flow-diagram.md)
+> 05 [数据库设计](docs/design/05-database-design.md) · 06 [容量/性能](docs/design/06-performance-capacity.md) · 07 [HTTP API](docs/design/07-http-api-design.md)
+> 08 [架构与部署](docs/design/08-architecture-deployment.md) · 09 [测试方案](docs/design/09-testing-plan.md)
 
 ```bash
-# 安装依赖
+# 1. 安装依赖
 poetry install
 
-# 启动开发服务
-poetry run uvicorn app.main:app --reload
+# 2. 拷贝环境变量模板
+cp .env.example .env
+# 按需配置 DATABASE_URL / REDIS_URL / JWT 密钥（开发模式可直接保持默认：SQLite 内存）
 
-# 运行测试
-poetry run pytest
+# 3. 运行全量单元 + 集成测试（0 外部依赖）
+poetry run pytest tests/ -q
+
+# 4. 启动开发服务（http://127.0.0.1:8000/docs 查看 OpenAPI）
+poetry run uvicorn app.main:app --reload
+```
+
+## 🧪 测试矩阵与覆盖（当前实现）
+
+```
+tests/unit/        186 tests    单测：9 个 BP 域 + core + seed + auth + health
+tests/integration/   2 tests    端到端 E2E：主链路覆盖 BP-A/B/C/D/E/F/G/H/I
+合计                 188 tests  全部通过（SQLite 内存 0 外部依赖）
+```
+
+关键实现亮点（代码与设计 1:1 对应）：
+
+| 设计点 | 代码位置 | 说明 |
+| --- | --- | --- |
+| DDD 分层 9 域聚合 | `app/domains/{trigger,workflow,rca,action,integration,knowledge,analytics,compliance,iam}` + platform | 每域 `models/schemas/service/api` 四件套 |
+| 嵌入 BPMN-lite 引擎 | `app/workflow_engine/` | compiler / engine / expressions / visualizer |
+| 跨 PG + SQLite JSONB 兼容 | `app/core/types.py::JSONBCompat`（TypeDecorator） | 单测 SQLite / 生产 PG，同一套代码 |
+| 乐观并发控制 | `app/db/base.py::VersionMixin` + workflow advance 重试 | |
+| 21 CFR Part 11 电子签名 Hash 链 | `app/domains/action/service.py::_compute_signature_hash` | prev_hash → record_hash 双链 |
+| 审计链 Hash 链 | `app/domains/compliance/models.py::AuditLog` + verify API | 双链 + 只追加 |
+| CPM 上下文模式匹配 RCA 推荐 | `app/domains/rca/service.py::_score_context` | 10 特征加权打分 |
+| 知识图谱实体/关系/路径 | `app/domains/knowledge/models.py` + API | nodes / edges / paths 三模型 |
+| 9 个三方系统 Mock 客户端 | `app/integrations/fake/{spc,fdc,mes,apc,yms,dms,ams,sfmm,recipe}.py` + store | 本地测试真实业务数据打底 |
+| 幂等 Seed 加载（10 份 YAML） | `app/db/seed/loader.py` | 版本控制、重复加载无副作用 |
+| macOS 12.7 单机部署 Step-by-Step | `docs/design/08-architecture-deployment.md` | Homebrew 一键 + launchd plist 模板 |
+
+---
+
+## 📂 项目结构
+
+```
+ocap_py/
+├── app/
+│   ├── api/v1/                   # 路由入口：auth + health
+│   ├── core/                     # config / deps / exceptions / pagination / security / types
+│   ├── db/
+│   │   ├── base.py               # Base + ID/Tenant/Timestamp/Version Mixin
+│   │   ├── session.py            # AsyncSession 工厂（PG/SQLite 自动）
+│   │   └── seed/                 # 10 份 seed YAML + 幂等 loader
+│   ├── domains/                  # DDD 9 域（BP-A~I），每域 models/schemas/service/api
+│   ├── integrations/             # 三方集成：base / dtos / registry / fake(9 个)
+│   ├── workflow_engine/          # BPMN-lite 引擎（编译/执行/表达式/可视化）
+│   └── main.py                   # FastAPI app factory + lifespan + 路由注册
+├── tests/
+│   ├── conftest.py               # db_session / authed_client / admin_client / seed_data / mock_store
+│   ├── unit/                     # 单测 186
+│   └── integration/              # E2E 主链路 2 条
+├── docs/
+│   ├── BUSINESS_POINTS.md        # 业务点 9 大类完整对标
+│   └── design/                   # 9 份设计文档 + Mermaid 图
+├── alembic.ini                   # （可选：Alembic 迁移入口）
+├── pyproject.toml                # Poetry 依赖 + pytest/ruff 配置
+├── .env.example                  # 环境变量模板
+└── README.md
+```
+
+---
+
+## 🖥️ macOS 12.7 单机一键部署（开发验证 / 单租户基线）
+
+完整 13 步（PG15 / Redis7 / Nginx / MinIO / PgBouncer / Prometheus / Grafana / launchd），见：
+👉 [docs/design/08-architecture-deployment.md Step 0~13](docs/design/08-architecture-deployment.md#3-部署架构macos-127-单机单租户开发验证)
+
+最小化快速验证（不装任何外部服务，0 依赖）：
+```bash
+poetry install
+DATABASE_URL="sqlite+aiosqlite:///:memory:?cache=shared" \
+INTEGRATION_DEFAULT_MODE=mock \
+poetry run pytest tests/ -q
+# → 188 passed
 ```
 
 ---

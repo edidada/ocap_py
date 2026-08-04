@@ -22,3 +22,14 @@
     - { id: 20, code: "ocap:audit:export", description: "导出审计日志" }
     - { id: 21, code: "ocap:config:write", description: "修改配置" }
     - { id: 22, code: "ocap:platform:admin", description: "平台管理" }
+    - { id: 23, code: "iam:auditor", description: "合规审计员（查看审计、保留策略）" }
+    - { id: 24, code: "spc:spec:write", description: "创建/修改SPC控制图规范" }
+    - { id: 25, code: "spc:spec:read", description: "查看SPC控制图规范" }
+    - { id: 26, code: "platform:config:write", description: "修改平台配置" }
+    - { id: 27, code: "platform:config:read", description: "查看平台配置" }
+    - { id: 28, code: "knowledge:graph:write", description: "维护知识图谱" }
+    - { id: 29, code: "knowledge:graph:read", description: "查看知识图谱" }
+    - { id: 30, code: "ocap:metrics:read", description: "读取 KPI/指标" }
+    - { id: 31, code: "platform:notify:send", description: "发送平台通知" }
+    - { id: 32, code: "platform:export:create", description: "创建导出任务" }
+    - { id: 33, code: "platform:export:read", description: "查看导出任务" }

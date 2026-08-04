@@ -168,7 +168,26 @@ async def run_cpm(
     _: User = Depends(require_permission("ocap:rca:create")),
     db: AsyncSession = Depends(get_db),
 ) -> CpmResult:
-    run = await service.run_cpm(db, tenant_id, payload)
+    # 自动从 knowledge 域的已发布案例提取候选
+    from app.domains.knowledge.models import KnowledgeCase
+    from app.domains.common.enums import KnowledgeCaseStatus
+    from sqlalchemy import select as _select
+
+    stmt = _select(KnowledgeCase).where(
+        KnowledgeCase.tenant_id == tenant_id,
+        KnowledgeCase.status == KnowledgeCaseStatus.PUBLISHED.value,
+    )
+    cases = (await db.execute(stmt)).scalars().all()
+    candidates = []
+    for c in cases:
+        ctx = dict(c.context or {})
+        ctx["case_id"] = c.id
+        # 把 equipment_id / process_step 提升到顶层，便于 CPM 打分
+        for k in ("equipment_id", "process_step"):
+            if getattr(c, k, None) and k not in ctx:
+                ctx[k] = getattr(c, k)
+        candidates.append(ctx)
+    run = await service.run_cpm(db, tenant_id, payload, candidates=candidates or None)
     await db.commit()
     return service.cpm_to_out(run)
 
